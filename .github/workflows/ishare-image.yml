@@ -1,0 +1,37 @@
+# Fork-only (seanGSISG/pingvin-share-x, branch `ishare`): builds the patched
+# amd64 image used by i.lsdmt.me and pushes it to GHCR under the git tag name.
+# Push a tag like `v2.0.0-ishare.1` to publish `ghcr.io/seangsisg/pingvin-share-x:v2.0.0-ishare.1`.
+name: Build i-share image
+
+on:
+  push:
+    tags:
+      - "v*-ishare.*"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64
+          push: true
+          # GHCR image names must be lowercase; github.repository_owner is not.
+          tags: ghcr.io/seangsisg/pingvin-share-x:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/seanGSISG/pingvin-share-x
+            org.opencontainers.image.revision=${{ github.sha }}
