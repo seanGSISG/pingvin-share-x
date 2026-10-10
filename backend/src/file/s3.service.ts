@@ -82,6 +82,8 @@ export class S3FileService {
           new CreateMultipartUploadCommand({
             Bucket: bucketName,
             Key: key,
+            ContentType:
+              mime.contentType(file.name) || "application/octet-stream",
           }),
         );
 
@@ -451,6 +453,7 @@ export class S3FileService {
         new CreateMultipartUploadCommand({
           Bucket: bucketName,
           Key: key,
+          ContentType: mime.contentType(fileName) || "application/octet-stream",
         }),
       );
 
@@ -595,6 +598,9 @@ export class S3FileService {
         fileRecord.name,
         isDownload ? undefined : { type: "inline" },
       ),
+      // Also covers objects that were uploaded without a Content-Type
+      ResponseContentType:
+        mime.contentType(fileRecord.name) || "application/octet-stream",
     });
 
     return await getSignedUrl(s3Instance, getObjectCommand, { expiresIn: 300 });
