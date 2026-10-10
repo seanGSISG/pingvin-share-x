@@ -901,6 +901,9 @@ export default {
   "admin.config.s3.use-checksum": "Use checksum",
   "admin.config.s3.use-checksum.description":
     "Turn off for backends that do not support checksum (e.g. B2).",
+  "admin.config.s3.download-url-expiration": "Download URL expiration",
+  "admin.config.s3.download-url-expiration.description":
+    "How long a signed download link stays valid, in seconds. Raise it if long videos stop playing or seeking after a few minutes.",
   "admin.config.s3.docs-link":
     "CORS must be reconfigured on your bucket, see the {wikiLink} for details.",
   "admin.config.category.legal": "Legal",
