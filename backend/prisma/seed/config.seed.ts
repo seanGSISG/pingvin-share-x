@@ -512,6 +512,10 @@ export const configVariables = {
       type: "boolean",
       defaultValue: "true",
     },
+    downloadUrlExpiration: {
+      type: "number",
+      defaultValue: "300",
+    },
   },
   legal: {
     enabled: {

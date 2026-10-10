@@ -597,7 +597,9 @@ export class S3FileService {
       ),
     });
 
-    return await getSignedUrl(s3Instance, getObjectCommand, { expiresIn: 300 });
+    return await getSignedUrl(s3Instance, getObjectCommand, {
+      expiresIn: this.config.get("s3.downloadUrlExpiration"),
+    });
   }
 
   getS3Path(): string {

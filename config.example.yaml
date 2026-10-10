@@ -291,6 +291,8 @@ s3:
   secret: ""
   #Turn off for backends that do not support checksum (e.g. B2).
   useChecksum: "true"
+  #How long a signed download link stays valid, in seconds. Raise it if long videos stop playing or seeking after a few minutes.
+  downloadUrlExpiration: "300"
 legal:
   #Whether to show a link to imprint and privacy policy in the footer.
   enabled: "false"
