@@ -76,6 +76,8 @@ share:
   chunkSize: "10000000"
   #How long files are kept after a share expires or gets deleted. Only useful if the 'Allow admin access to all shares' is also enabled. Set to -1 to keep files forever.
   fileRetentionPeriod: 0 days
+  #Delete a share once its maximum views are used up. The last visitor gets one more hour to finish downloading or watching.
+  deleteAfterMaxViews: "false"
 cache:
   #Normally Pingvin Share caches information in memory. If you run multiple instances of Pingvin Share, you need to enable Redis caching to share the cache between the instances.
   redis-enabled: "false"
