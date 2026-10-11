@@ -732,6 +732,9 @@ export default {
   "admin.config.share.file-retention-period": "File retention period",
   "admin.config.share.file-retention-period.description":
     "How long files are kept after a share expires or is deleted. Only useful if 'Allow admin access to all shares' is also enabled. Set to -1 to keep files forever.",
+  "admin.config.share.delete-after-max-views": "Delete after maximum views",
+  "admin.config.share.delete-after-max-views.description":
+    "Delete a share once its maximum views are used up. The last visitor gets one more hour to finish downloading or watching.",
   "admin.config.smtp.enabled": "Enable",
   "admin.config.smtp.enabled.description":
     "Whether SMTP is enabled. Only set this to true if you entered the host, port, email, user and password of your SMTP server.",

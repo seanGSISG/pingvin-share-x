@@ -189,6 +189,10 @@ export const configVariables = {
       defaultValue: "0 days",
       secret: false,
     },
+    deleteAfterMaxViews: {
+      type: "boolean",
+      defaultValue: "false",
+    },
   },
   cache: {
     "redis-enabled": {
