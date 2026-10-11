@@ -28,6 +28,12 @@ import { SHARE_DIRECTORY } from "../constants";
 import { CreateShareDTO } from "./dto/createShare.dto";
 import { UpdateShareDTO } from "./dto/updateShare.dto";
 
+// With share.deleteAfterMaxViews on, a Share whose View Limit is used up
+// expires this long after its last allowed view, so that Viewer can finish
+// (a video keeps requesting byte ranges). Longer than the default lifetime of
+// a signed S3 download URL (5 minutes).
+const LAST_VIEW_GRACE_PERIOD = moment.duration(1, "hour");
+
 @Injectable()
 export class ShareService {
   private readonly logger = new Logger(ShareService.name);
@@ -662,21 +668,50 @@ export class ShareService {
   }
 
   // Counts one view of a Share and enforces its View Limit. The limit check and
-  // the increment are one conditional UPDATE, so concurrent Viewers can't push
-  // the count past the limit. Throws share_max_views_exceeded once it's used up.
+  // the increment are one conditional UPDATE ... RETURNING, so concurrent
+  // Viewers can't push the count past the limit, and `views` is the count this
+  // request produced. Throws share_max_views_exceeded once it's used up.
+  // With share.deleteAfterMaxViews on, the request that takes the last allowed
+  // view makes the Share expire LAST_VIEW_GRACE_PERIOD from now, unless it
+  // expires sooner anyway; deleteExpiredShares then deletes it.
   async increaseViewCount(share: Share & { security?: ShareSecurity | null }) {
     const maxViews = share.security?.maxViews;
 
-    const { count } = await this.prisma.share.updateMany({
-      where: { id: share.id, views: maxViews ? { lt: maxViews } : undefined },
-      data: { views: { increment: 1 } },
-    });
+    const { views } = await this.prisma.share
+      .update({
+        where: { id: share.id, views: maxViews ? { lt: maxViews } : undefined },
+        data: { views: { increment: 1 } },
+        select: { views: true },
+      })
+      .catch((e) => {
+        const noRowMatched =
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === "P2025";
+        if (maxViews && noRowMatched) {
+          throw new ForbiddenException(
+            this.i18n.t("share.maxViewsExceeded"),
+            "share_max_views_exceeded",
+          );
+        }
+        throw e;
+      });
 
-    if (maxViews && count === 0) {
-      throw new ForbiddenException(
-        this.i18n.t("share.maxViewsExceeded"),
-        "share_max_views_exceeded",
-      );
+    if (
+      maxViews &&
+      views >= maxViews &&
+      this.config.get("share.deleteAfterMaxViews")
+    ) {
+      const graceEnd = moment().add(LAST_VIEW_GRACE_PERIOD).toDate();
+      await this.prisma.share.updateMany({
+        where: {
+          id: share.id,
+          OR: [
+            { expiration: moment(0).toDate() }, // never expires
+            { expiration: { gt: graceEnd } },
+          ],
+        },
+        data: { expiration: graceEnd },
+      });
     }
   }
 
